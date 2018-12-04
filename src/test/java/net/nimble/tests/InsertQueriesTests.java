@@ -59,6 +59,7 @@ public class InsertQueriesTests {
         Person tyrion = PeopleFactory.createTyrion();
 
         try (NbConnection connection = nimble.getConnection()) {
+            connection.setSavepoint();
             int affectedRows =
                     connection.execute("insert into person " +
                             "(first_name, last_name, birth_date, gender, weight, height, cash_amount) values " +
@@ -66,6 +67,7 @@ public class InsertQueriesTests {
 
             Assert.assertEquals(1, affectedRows);
             Assert.assertTrue(tyrion.getId() > 0);
+            Assert.assertEquals(tyrion.getId(), connection.getGeneratedKeyAs(int.class));
         }
 
         try (Connection connection = dataSource.getConnection()) {

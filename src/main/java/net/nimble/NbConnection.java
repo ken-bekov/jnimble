@@ -108,8 +108,16 @@ public class NbConnection extends ConnectionWrapper {
         }
     }
 
+    private Object generatedKey;
+
+    public Object getGeneratedKeyAs(Class type) {
+        return context.getConverterManager().convertFromDb(generatedKey, type);
+    }
+
     public int execute(String query, Object params) {
         try {
+            generatedKey = null;
+
             QueryParsingResult parsingResult = QueryProcessor.extractParamNames(query);
             ValueExtract valueExtract = context.getValueExtractFactory().getExtractor(params);
             Map<String, Object> valueMap = valueExtract.getValueMap(parsingResult.getNames(), params);
@@ -122,12 +130,13 @@ public class NbConnection extends ConnectionWrapper {
 
             int result = statement.executeUpdate();
 
-            if (isBean(params)) {
-                ResultSet resultSet = statement.getGeneratedKeys();
-                if (resultSet.next()) {
-                    Object id = resultSet.getObject(1);
-                    MetaUtils.applyId(id, params, context.getConverterManager());
-                }
+            ResultSet resultSet = statement.getGeneratedKeys();
+            if (resultSet.next()) {
+                generatedKey = resultSet.getObject(1);
+            }
+
+            if (isBean(params) && generatedKey != null) {
+                MetaUtils.applyId(generatedKey, params, context.getConverterManager());
             }
             return result;
         } catch (SQLException e) {
@@ -306,5 +315,11 @@ public class NbConnection extends ConnectionWrapper {
             builder.append("=?");
             columnNameList.add(columnName);
         }
+    }
+
+    @Override
+    public void close() throws SQLException {
+        generatedKey = null;
+        super.close();
     }
 }
