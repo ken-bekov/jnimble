@@ -1,4 +1,5 @@
-# jnimble
-<b>jNimble</b> is a lightweight ORM for JDBC
+# <img src="http://jnimble.net/images/nimble-logo.png?id=12" height="200"/>
+# jNimble
+Lightweight ORM for JDBC
 
-<a href="http://jnimble.net">Project url</a>
+<a href="http://jnimble.net">Mor information</a>
