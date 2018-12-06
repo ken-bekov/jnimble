@@ -2,3 +2,4 @@
 javadoc/
 target/
 *.iml
+release.properties
