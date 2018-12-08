@@ -24,20 +24,31 @@
 
 package net.nimble.tests.utils;
 
-import org.postgresql.ds.PGPoolingDataSource;
+import com.mysql.cj.jdbc.MysqlConnectionPoolDataSource;
 
 import javax.sql.DataSource;
 import java.sql.SQLException;
 
-public class PostgresDbUtils {
+public class MysqlDataSourceProvider implements DataSourceProvider {
 
-    public static DataSource createDataSource(String serverName, String user, String password, String database) throws SQLException {
-        PGPoolingDataSource dataSource = new PGPoolingDataSource();
+    private static DataSource createNewDataSource(String serverName, String user, String password, String database) throws SQLException {
+        MysqlConnectionPoolDataSource dataSource = new MysqlConnectionPoolDataSource();
         dataSource.setServerName(serverName);
         dataSource.setUser(user);
         dataSource.setPassword(password);
         dataSource.setDatabaseName(database);
-        dataSource.setSsl(false);
+        dataSource.setUseSSL(false);
+        dataSource.setAllowMultiQueries(true);
         return dataSource;
+    }
+
+    @Override
+    public DataSource createDataSource(String serverName, String user, String password, String database) {
+        try {
+            System.out.println("Mysql Datasource createds");
+            return createNewDataSource(serverName, user, password, database);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

@@ -24,21 +24,20 @@
 
 package net.nimble.tests.utils;
 
-import com.mysql.cj.jdbc.MysqlConnectionPoolDataSource;
+import org.junit.runner.notification.RunNotifier;
+import org.junit.runners.Suite;
+import org.junit.runners.model.InitializationError;
+import org.junit.runners.model.RunnerBuilder;
 
-import javax.sql.DataSource;
-import java.sql.SQLException;
+public class CustomRunner extends Suite {
 
-public class MysqlDbUtils {
+    public CustomRunner(Class<?> klass, RunnerBuilder builder) throws InitializationError {
+        super(klass, builder);
+    }
 
-    public static DataSource createDataSource(String serverName, String user, String password, String database) throws SQLException {
-        MysqlConnectionPoolDataSource dataSource = new MysqlConnectionPoolDataSource();
-        dataSource.setServerName(serverName);
-        dataSource.setUser(user);
-        dataSource.setPassword(password);
-        dataSource.setDatabaseName(database);
-        dataSource.setUseSSL(false);
-        dataSource.setAllowMultiQueries(true);
-        return dataSource;
+    @Override
+    public void run(RunNotifier notifier) {
+        super.run(notifier);
+        notifier.addListener(new ConsoleRunListener());
     }
 }

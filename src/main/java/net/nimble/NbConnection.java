@@ -110,8 +110,8 @@ public class NbConnection extends ConnectionWrapper {
 
     private Object generatedKey;
 
-    public Object getGeneratedKeyAs(Class type) {
-        return context.getConverterManager().convertFromDb(generatedKey, type);
+    public <T>  T getGeneratedKeyAs(Class<T> type) {
+        return (T)context.getConverterManager().convertFromDb(generatedKey, type);
     }
 
     public int execute(String query, Object params) {
