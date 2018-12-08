@@ -24,20 +24,23 @@
 
 package net.nimble.tests.utils;
 
+import net.nimble.tests.config.TestConfig;
+import net.nimble.tests.utils.providers.MysqlDataSourceProvider;
 import org.junit.runner.notification.RunNotifier;
 import org.junit.runners.Suite;
 import org.junit.runners.model.InitializationError;
 import org.junit.runners.model.RunnerBuilder;
 
-public class CustomRunner extends Suite {
+public class MysqlSuite extends Suite {
 
-    public CustomRunner(Class<?> klass, RunnerBuilder builder) throws InitializationError {
+    public MysqlSuite(Class<?> klass, RunnerBuilder builder) throws InitializationError {
         super(klass, builder);
     }
 
     @Override
     public void run(RunNotifier notifier) {
+        DbUtils.setDataSource(new MysqlDataSourceProvider().createDataSource(TestConfig.serverName,
+                TestConfig.user, TestConfig.password, TestConfig.database));
         super.run(notifier);
-        notifier.addListener(new ConsoleRunListener());
     }
 }

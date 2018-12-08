@@ -31,5 +31,5 @@ public class TestConfig {
     public static String user = "jnimble";
     public static String password = "jnimble";
     public static String database = "jnimble";
-    public static SqlDialect dialect = SqlDialect.MYSQL;
+    public static SqlDialect defaultDialect = SqlDialect.MYSQL;
 }

@@ -41,21 +41,20 @@ import java.util.List;
 public class UpdateQueriesTests {
 
     private Nimble nimble;
-    private DataSource dataSource;
 
     @Before
     public void init() throws SQLException {
+        DataSource dataSource = DbUtils.getDataSource();
         Person[] people = new Person[]{
                 PeopleFactory.createJaime(),
                 PeopleFactory.createCercei(),
                 PeopleFactory.createTyrion()
         };
         for (Person person : people) {
-            DbUtils.deleteTestPeople(person.getFirstName(), person.getLastName());
+            DbUtils.deleteTestPeople(dataSource, person.getFirstName(), person.getLastName());
         }
 
-        dataSource = DbUtils.createDataSource();
-        nimble = new Nimble(dataSource, TestConfig.dialect);
+        nimble = new Nimble(dataSource, TestConfig.defaultDialect);
     }
 
     @Test

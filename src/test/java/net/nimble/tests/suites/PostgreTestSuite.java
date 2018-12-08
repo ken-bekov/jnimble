@@ -22,14 +22,12 @@
  * SOFTWARE.
  */
 
-package net.nimble.tests;
+package net.nimble.tests.suites;
 
 import net.nimble.tests.InsertQueriesTests;
 import net.nimble.tests.SelectQueriesTests;
 import net.nimble.tests.UpdateQueriesTests;
-import net.nimble.tests.utils.DbSuite;
 import net.nimble.tests.utils.PostgreSuite;
-import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 

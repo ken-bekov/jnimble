@@ -24,8 +24,9 @@
 
 package net.nimble.tests.utils;
 
-import net.nimble.sql.SqlDialect;
 import net.nimble.tests.config.TestConfig;
+import net.nimble.tests.utils.providers.MysqlDataSourceProvider;
+import net.nimble.tests.utils.providers.PostgresDataSourceProvider;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
@@ -34,18 +35,9 @@ import java.sql.SQLException;
 
 public class DbUtils {
 
-    public static DataSource createDataSource() throws SQLException {
-        if(TestConfig.dialect == SqlDialect.POSTGRES){
-            return PostgresDbUtils.createDataSource(TestConfig.serverName, TestConfig.user,
-                    TestConfig.password, TestConfig.database);
-         } else {
-            return MysqlDbUtils.createDataSource(TestConfig.serverName, TestConfig.user,
-                    TestConfig.password, TestConfig.database);
-        }
-    }
+    private static DataSource dataSource;
 
-    public static void deleteTestPeople(String firstName, String lastName) throws SQLException {
-        DataSource dataSource = createDataSource();
+    public static void deleteTestPeople(DataSource dataSource, String firstName, String lastName) throws SQLException {
         try (Connection connection = dataSource.getConnection()) {
             PreparedStatement statement =
                     connection.prepareStatement("delete from person where first_name=? and last_name=?");
@@ -56,4 +48,26 @@ public class DbUtils {
 
     }
 
+    public static DataSource getDataSource() {
+        if (dataSource == null) {
+            switch (TestConfig.defaultDialect) {
+                case MYSQL:
+                    dataSource = new MysqlDataSourceProvider().createDataSource(TestConfig.serverName,
+                            TestConfig.user, TestConfig.password, TestConfig.database);
+                    break;
+                case POSTGRES:
+                    dataSource = new PostgresDataSourceProvider().createDataSource(TestConfig.serverName,
+                            TestConfig.user, TestConfig.password, TestConfig.database);
+                    break;
+                default:
+                    dataSource = new MysqlDataSourceProvider().createDataSource(TestConfig.serverName,
+                            TestConfig.user, TestConfig.password, TestConfig.database);
+            }
+        }
+        return dataSource;
+    }
+
+    public static void setDataSource(DataSource dataSource) {
+        DbUtils.dataSource = dataSource;
+    }
 }

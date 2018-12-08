@@ -28,13 +28,11 @@ import net.nimble.NbConnection;
 import net.nimble.NbParams;
 import net.nimble.NbRow;
 import net.nimble.Nimble;
-import net.nimble.sql.SqlDialect;
 import net.nimble.tests.config.TestConfig;
 import net.nimble.tests.entities.Gender;
 import net.nimble.tests.entities.Person;
 import net.nimble.tests.utils.DbUtils;
 import net.nimble.tests.utils.PeopleFactory;
-import net.nimble.tests.utils.PostgresDbUtils;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -48,22 +46,21 @@ import java.util.Map;
 
 public class SelectQueriesTests {
 
-    private DataSource dataSource;
     private Nimble nimble;
 
     @Before
     public void init() throws SQLException {
+        DataSource dataSource = DbUtils.getDataSource();
         Person[] people = new Person[]{
                 PeopleFactory.createJaime(),
                 PeopleFactory.createCercei(),
                 PeopleFactory.createTyrion()
         };
         for (Person person : people) {
-            DbUtils.deleteTestPeople(person.getFirstName(), person.getLastName());
+            DbUtils.deleteTestPeople(dataSource, person.getFirstName(), person.getLastName());
         }
 
-        DataSource dataSource = DbUtils.createDataSource();
-        nimble = new Nimble(dataSource, TestConfig.dialect);
+        nimble = new Nimble(dataSource, TestConfig.defaultDialect);
     }
 
     @Test

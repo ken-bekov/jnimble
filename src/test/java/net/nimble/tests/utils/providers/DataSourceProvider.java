@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-package net.nimble.tests.utils;
+package net.nimble.tests.utils.providers;
 
 import javax.sql.DataSource;
 

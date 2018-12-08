@@ -26,13 +26,11 @@ package net.nimble.tests;
 
 import net.nimble.Nimble;
 import net.nimble.NbConnection;
-import net.nimble.sql.SqlDialect;
 import net.nimble.tests.config.TestConfig;
 import net.nimble.tests.entities.Gender;
 import net.nimble.tests.entities.Person;
 import net.nimble.tests.utils.DbUtils;
 import net.nimble.tests.utils.PeopleFactory;
-import net.nimble.tests.utils.PostgresDbUtils;
 import org.junit.*;
 
 import javax.sql.DataSource;
@@ -48,10 +46,10 @@ public class InsertQueriesTests {
 
     @Before
     public void clearTestData() throws SQLException {
+        dataSource = DbUtils.getDataSource();
         Person tyrion = PeopleFactory.createTyrion();
-        DbUtils.deleteTestPeople(tyrion.getFirstName(), tyrion.getLastName());
-        dataSource = DbUtils.createDataSource();
-        nimble = new Nimble(dataSource, TestConfig.dialect);
+        DbUtils.deleteTestPeople(dataSource, tyrion.getFirstName(), tyrion.getLastName());
+        nimble = new Nimble(dataSource, TestConfig.defaultDialect);
     }
 
     @Test
@@ -59,6 +57,7 @@ public class InsertQueriesTests {
         Person tyrion = PeopleFactory.createTyrion();
 
         try (NbConnection connection = nimble.getConnection()) {
+            connection.setAutoCommit(false);
             connection.setSavepoint();
             int affectedRows =
                     connection.execute("insert into person " +
@@ -67,7 +66,8 @@ public class InsertQueriesTests {
 
             Assert.assertEquals(1, affectedRows);
             Assert.assertTrue(tyrion.getId() > 0);
-            Assert.assertEquals(tyrion.getId(), connection.getGeneratedKeyAs(int.class));
+            int id = connection.getGeneratedKeyAs(int.class);
+            Assert.assertEquals(tyrion.getId(), id);
         }
 
         try (Connection connection = dataSource.getConnection()) {

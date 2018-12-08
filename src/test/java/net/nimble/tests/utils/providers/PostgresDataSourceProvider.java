@@ -22,12 +22,12 @@
  * SOFTWARE.
  */
 
-package net.nimble.tests.utils;
+package net.nimble.tests.utils.providers;
 
+import net.nimble.tests.utils.providers.DataSourceProvider;
 import org.postgresql.ds.PGPoolingDataSource;
 
 import javax.sql.DataSource;
-import java.sql.SQLException;
 
 public class PostgresDataSourceProvider implements DataSourceProvider {
 
