@@ -28,7 +28,7 @@
 
     <groupId>net.jnimble</groupId>
     <artifactId>jnimble</artifactId>
-    <version>2.0.2</version>
+    <version>2.0.3-SNAPSHOT</version>
 
     <developers>
         <developer>
@@ -60,7 +60,7 @@
         <connection>scm:git:git://github.com/ken-bekov/jnimble.git</connection>
         <developerConnection>scm:git:git@github.com:ken-bekov/jnimble.git</developerConnection>
         <url>https://github.com/ken-bekov/jnimble</url>
-        <tag>jnimble-2.0.2</tag>
+        <tag>HEAD</tag>
     </scm>
 
     <dependencies>
