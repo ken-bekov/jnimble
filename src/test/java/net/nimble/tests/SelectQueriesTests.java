@@ -77,14 +77,14 @@ public class SelectQueriesTests {
             Assert.assertTrue(cercei.getId() > 0);
         }
 
-        List<Person> personList;
+        Person[] personList;
         try (NbConnection connection = nimble.getConnection()) {
             personList = connection.query("select * from person " +
                     "where first_name in ('Tyrion', 'Jaime', 'Cercei')", Person.class);
         }
 
         Assert.assertNotNull(personList);
-        Assert.assertEquals(3, personList.size());
+        Assert.assertEquals(3, personList.length);
         for (Person person : personList) {
             if (person.getFirstName().equals("Tyrion")) {
                 Assert.assertEquals(Gender.MALE, person.getGender());
@@ -105,7 +105,7 @@ public class SelectQueriesTests {
             connection.insert(jaime);
         }
 
-        List<Person> personList;
+        Person[] personList;
         try (NbConnection connection = nimble.getConnection(false)) {
             Object paramsObject = new Object() {
                 public int getId() {
@@ -117,10 +117,10 @@ public class SelectQueriesTests {
         }
 
         Assert.assertNotNull(personList);
-        Assert.assertEquals(1, personList.size());
+        Assert.assertEquals(1, personList.length);
 
-        Person person = personList.get(0);
-        Assert.assertEquals(1, personList.size());
+        Person person = personList[0];
+        Assert.assertEquals(1, personList.length);
         Assert.assertEquals(cercie.getHeight(), person.getHeight(), 0);
         Assert.assertEquals(cercie.getCashAmount(), person.getCashAmount(), 0);
         Assert.assertEquals(cercie.getGender(), person.getGender());
@@ -146,14 +146,14 @@ public class SelectQueriesTests {
         params.put("firstName", nameList);
         params.put("gender", Gender.MALE);
 
-        List<Person> personList;
+        Person[] personList;
         try (NbConnection connection = nimble.getConnection()) {
             personList = connection.query("select * from person where first_name in (:firstName) and " +
                     "gender=:gender", params, Person.class);
         }
 
         Assert.assertNotNull(personList);
-        Assert.assertEquals(2, personList.size());
+        Assert.assertEquals(2, personList.length);
         for (Person person : personList) {
             if (person.getFirstName().equals("Jaime")) {
                 Assert.assertEquals(jaime.getBirthDate(), person.getBirthDate());
@@ -176,7 +176,7 @@ public class SelectQueriesTests {
             connection.insert(tyrion);
         }
 
-        List<Person> personList;
+        Person[] personList;
         try (NbConnection connection = nimble.getConnection()) {
             personList = connection.query(
                     "select * from person where gender in (:gender) and " +
@@ -189,7 +189,7 @@ public class SelectQueriesTests {
         }
 
         Assert.assertNotNull(personList);
-        Assert.assertEquals(2, personList.size());
+        Assert.assertEquals(2, personList.length);
         for (Person person : personList) {
             if (person.getFirstName().equals("Jaime")) {
                 Assert.assertEquals(jaime.getBirthDate(), person.getBirthDate());
@@ -212,7 +212,7 @@ public class SelectQueriesTests {
             connection.insert(tyrion);
         }
 
-        List<NbRow> rowList;
+        NbRow[] rowList;
         try (NbConnection connection = nimble.getConnection()) {
             rowList = connection.query("select * from person where first_name in (:nameList)",
                     new Object() {
@@ -222,7 +222,7 @@ public class SelectQueriesTests {
                     }, NbRow.class);
         }
         Assert.assertNotNull(rowList);
-        Assert.assertEquals(3, rowList.size());
+        Assert.assertEquals(3, rowList.length);
         for (NbRow row : rowList) {
             if (row.getValue("first_name").equals("Jaime")) {
                 Assert.assertEquals(jaime.getWeight(), row.getValue("weight", Double.class), 0);

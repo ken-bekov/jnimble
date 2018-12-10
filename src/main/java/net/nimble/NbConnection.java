@@ -65,19 +65,19 @@ public class NbConnection extends ConnectionWrapper {
      *              parameter doesn't need to be specified due to the Java type inference.
      * @return List of items of the type specified in the {@code type} parameter
      */
-    public <T> List<T> query(String query, Class<T> type) {
+    public <T> T[] query(String query, Class<T> type) {
         return query(query, (Object) null, type);
     }
 
-    public <T> List<T> query(String query, Map<String, Object> params, Class<T> type) {
+    public <T> T[] query(String query, Map<String, Object> params, Class<T> type) {
         return query(query, (Object) params, type);
     }
 
-    public <T> List<T> query(String query, NbParams params, Class<T> type) {
+    public <T> T[] query(String query, NbParams params, Class<T> type) {
         return query(query, (Object) params, type);
     }
 
-    public <T> List<T> query(String query, Object params, Class<T> type) {
+    public <T> T[] query(String query, Object params, Class<T> type) {
 
         QueryParsingResult parsingResult = null;
         Map<String, Object> valueMap = null;
@@ -101,7 +101,8 @@ public class NbConnection extends ConnectionWrapper {
                     Object object = objectCreator.create(resultSet);
                     resultList.add((T) object);
                 }
-                return resultList;
+                T[] result = (T[])Array.newInstance(type, resultList.size());
+                return resultList.toArray(result);
             }
         } catch (SQLException e) {
             throw new NimbleSQLException(e);

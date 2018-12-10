@@ -94,12 +94,12 @@ public class UpdateQueriesTests {
             connection.update(tyrion);
         }
 
-        List<Person> personList;
+        Person[] personList;
         try (NbConnection connection = nimble.getConnection()) {
             personList = connection.query("select * from person where id=:id", tyrion, Person.class);
         }
-        Assert.assertEquals(1, personList.size());
-        Person person = personList.get(0);
+        Assert.assertEquals(1, personList.length);
+        Person person = personList[0];
         Assert.assertEquals(tyrion.getWeight(), person.getWeight());
         Assert.assertEquals(tyrion.getCashAmount(), person.getCashAmount());
     }
