@@ -28,6 +28,8 @@ import net.nimble.exceptions.NimbleException;
 import net.nimble.meta.MetaUtils;
 import net.nimble.meta.mappers.ObjectMapper;
 import net.nimble.sql.ConnectionWrapper;
+
+import java.lang.reflect.Field;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -163,23 +165,52 @@ public class NbConnection extends ConnectionWrapper {
         return object;
     }
 
+    public int delete(Object id, Class type) throws SQLException {
+        Field idField = MetaUtils.getIdField(type);
+        if (idField == null) {
+            throw new NimbleException("Can't find id field for type " + type.getName());
+        }
+
+        idField.setAccessible(true);
+        String idColumnName = MetaUtils.getColumnName(idField);
+        if (idColumnName == null) {
+            idColumnName = idField.getName();
+        }
+
+        return delete(id, idColumnName, type);
+    }
+
     public int delete(Object object) throws SQLException {
-        String tableName = MetaUtils.getTableName(object.getClass());
-        Map<String, Object> idValueMap = MetaUtils.getIdColumnMap(object);
-        List<String> idNameList = new ArrayList<>(idValueMap.size());
+        Field idField = MetaUtils.getIdField(object.getClass());
+        if (idField == null) {
+            throw new NimbleException("Can't find id field for type " + object.getClass().getName());
+        }
+
+        idField.setAccessible(true);
+        String idColumnName = MetaUtils.getColumnName(idField);
+        if (idColumnName == null) {
+            idColumnName = idField.getName();
+        }
+        try {
+            Object idValue = idField.get(object);
+            return delete(idValue, idColumnName, object.getClass());
+        } catch (IllegalAccessException e) {
+            throw new NimbleException(e);
+        }
+    }
+
+    private int delete(Object idValue, String idColumnName, Class type) throws SQLException {
+        String tableName = MetaUtils.getTableName(type);
         StringBuilder builder = new StringBuilder();
         builder.append("delete from ")
                 .append(tableName)
-                .append(" where ");
-
-        addWhereConditions(builder, idValueMap, idNameList);
+                .append(" where ")
+                .append(idColumnName)
+                .append("=?");
 
         PreparedStatement statement = connection.prepareStatement(builder.toString());
-        for (int i = 0; i < idNameList.size(); i++) {
-            String columnName = idNameList.get(i);
-            Object value = context.getConverterManager().convertToDb(idValueMap.get(columnName));
-            statement.setObject(i + 1, value);
-        }
+        Object value = context.getConverterManager().convertToDb(idValue);
+        statement.setObject(1, value);
         return statement.executeUpdate();
     }
 

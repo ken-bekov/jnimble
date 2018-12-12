@@ -46,7 +46,15 @@ public class DbUtils {
             statement.setString(2, lastName);
             statement.executeUpdate();
         }
+    }
 
+    public static void deleteTestPeople(DataSource dataSource) throws SQLException {
+        try (Connection connection = dataSource.getConnection()) {
+            PreparedStatement statement =
+                    connection.prepareStatement("delete from person where last_name=?");
+            statement.setString(1, "Lannister");
+            statement.executeUpdate();
+        }
     }
 
     public static DataSource getDataSource() {

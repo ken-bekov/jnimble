@@ -82,7 +82,7 @@ public class BeanMapper implements ObjectMapper {
         MemberFinder[] fieldFinders = new MemberFinder[]{fieldByColumnFinder, fieldByNameFinder};
         for (String columnName : valueMap.keySet()) {
             fieldByColumnFinder.setColumnName(columnName);
-            fieldByNameFinder.setColumnName(columnName);
+            fieldByNameFinder.setFieldName(columnName);
             memberEnumerator.enumerate(fields, fieldFinders);
 
             String fieldName = null;

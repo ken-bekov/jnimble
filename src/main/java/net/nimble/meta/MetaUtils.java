@@ -35,6 +35,7 @@ import net.nimble.meta.finders.FieldByNameFinder;
 import net.nimble.meta.finders.GetterByIdFinder;
 import net.nimble.meta.finders.MethodByNameFinder;
 import net.nimble.utils.StringUtils;
+
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -61,7 +62,7 @@ public class MetaUtils {
             if (method.getDeclaringClass() != object.getClass() || !method.getName().startsWith("get")) continue;
             if (method.getAnnotation(Ignore.class) != null) continue;
             Id id = method.getAnnotation(Id.class);
-            if(id!=null && id.generate()) continue;
+            if (id != null && id.generate()) continue;
 
             String columnName = null;
 
@@ -72,7 +73,7 @@ public class MetaUtils {
                 fields[fieldIndex] = null;
                 if (field.getAnnotation(Ignore.class) != null) continue;
                 id = field.getAnnotation(Id.class);
-                if(id!=null && id.generate()) continue;
+                if (id != null && id.generate()) continue;
                 columnName = MetaUtils.getColumnName(field);
             }
 
@@ -93,12 +94,13 @@ public class MetaUtils {
         return valueMap;
     }
 
+
     public static void applyId(Object id, Object object, ConverterManagerImpl converterManager) {
         Class objectClass = object.getClass();
         Field[] fields = object.getClass().getDeclaredFields();
         Method[] methods = object.getClass().getMethods();
         FieldByNameFinder fieldByNameFinder = new FieldByNameFinder();
-        fieldByNameFinder.setColumnName("id");
+        fieldByNameFinder.setFieldName("id");
         FieldByIdFinder fieldByIdFinder = new FieldByIdFinder();
         GetterByIdFinder getterByIdFinder = new GetterByIdFinder();
         MemberEnumerator memberEnumerator = new MemberEnumerator();
@@ -181,12 +183,34 @@ public class MetaUtils {
         return result;
     }
 
-    private static String getColumnName(AccessibleObject member) {
+    public static String getColumnName(AccessibleObject member) {
         Column column = member.getAnnotation(Column.class);
         if (column != null && column.value().length() > 0) {
             return column.value();
         }
         return null;
+    }
+
+    public static Field getIdField(Class type) {
+        Field[] fields = type.getDeclaredFields();
+        MemberEnumerator enumerator = new MemberEnumerator();
+        FieldByIdFinder fieldByIdFinder = new FieldByIdFinder();
+        FieldByNameFinder fieldByNameFinder = new FieldByNameFinder();
+        fieldByNameFinder.setFieldName("id");
+        enumerator.enumerate(fields, new MemberFinder[]{fieldByIdFinder, fieldByNameFinder});
+        if (fieldByIdFinder.getIdField() != null) {
+            return fieldByIdFinder.getIdField();
+        } else {
+            Method[] methods = type.getMethods();
+            GetterByIdFinder getterByIdFinder = new GetterByIdFinder();
+            enumerator.enumerate(methods, getterByIdFinder);
+            if (getterByIdFinder.getIdGetter() != null) {
+                Method getter = getterByIdFinder.getIdGetter();
+                fieldByNameFinder.setFieldName(StringUtils.uncapitalize(getter.getName().substring(3)));
+                enumerator.enumerate(fields, fieldByNameFinder);
+            }
+            return fieldByNameFinder.getMatchedField();
+        }
     }
 
     public static String geIdColumnName(Class type) {
@@ -211,7 +235,7 @@ public class MetaUtils {
                 return columnName;
             }
 
-            if (idNameMethod==null && "ID".equals(fieldName.toUpperCase())) {
+            if (idNameMethod == null && "ID".equals(fieldName.toUpperCase())) {
                 idNameMethod = method;
             }
         }

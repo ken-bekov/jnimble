@@ -34,7 +34,7 @@ public class PeopleFactory {
         Person person = new Person();
         person.setFirstName("Tyrion");
         person.setLastName("Lannister");
-        person.setBirthDate(new DateTime(1955, 06, 07, 0,0,0));
+        person.setBirthDate(DateTime.parse("1955-06-07"));
         person.setGender(Gender.MALE);
         person.setHeight(1.3f);
         person.setWeight(45.99);

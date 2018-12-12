@@ -47,7 +47,7 @@ public class FieldByNameFinder implements MemberFinder {
         return matchedField;
     }
 
-    public void setColumnName(String columnName) {
+    public void setFieldName(String columnName) {
         this.columnName = columnName.toUpperCase();
         this.matchedField = null;
     }
