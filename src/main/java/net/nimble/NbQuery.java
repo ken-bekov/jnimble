@@ -64,7 +64,7 @@ public class NbQuery {
         return this;
     }
 
-    public <T> T fetchSingular(Class<T> type) {
+    public <T> T fetchScalar(Class<T> type) {
         try {
             PreparedStatement statement = createStatement(false);
             T value = null;

@@ -25,7 +25,6 @@
 package net.nimble.tests;
 
 import net.nimble.NbConnection;
-import net.nimble.NbParams;
 import net.nimble.NbRow;
 import net.nimble.Nimble;
 import net.nimble.tests.config.TestConfig;
@@ -264,13 +263,13 @@ public class SelectQueriesTests {
             int id = connection.query("select id from person where first_name=:firstName and birth_date=:birthDate")
                     .addParam("firstName", jaime.getFirstName())
                     .addParam("birthDate", jaime.getBirthDate())
-                    .fetchSingular(Integer.class);
+                    .fetchScalar(Integer.class);
 
             DateTime date = connection.query("select birth_date from person " +
                     "where first_name=:firstName and birth_date=:birthDate")
                     .addParam("firstName", jaime.getFirstName())
                     .addParam("birthDate", jaime.getBirthDate())
-                    .fetchSingular(DateTime.class);
+                    .fetchScalar(DateTime.class);
          
             Assert.assertEquals(jaime.getId(), id);
             Assert.assertEquals(jaime.getBirthDate(), date);
