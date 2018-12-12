@@ -65,9 +65,14 @@ public class NbQuery {
     }
 
     public <T> T fetchValue(Class<T> type) {
+        Object value = fetchValue();
+        return (T) context.getConverterManager().convertFromDb(value, type);
+    }
+
+    public Object fetchValue() {
         try {
             PreparedStatement statement = createStatement(false);
-            T value = null;
+            Object value = null;
             try (ResultSet resultSet = statement.executeQuery()) {
                 if (resultSet.getMetaData().getColumnCount() > 1) {
                     throw new NimbleException(String.format("Result is not singular. There are %d columns in the result.",
@@ -80,8 +85,7 @@ public class NbQuery {
                     if (counter > 1) {
                         throw new NimbleException("Result is not singular. There are more than one row in the result.");
                     }
-                    value = (T) context.getConverterManager()
-                            .convertFromDb(resultSet.getObject(1), type);
+                    value = resultSet.getObject(1);
                 }
             }
             return value;
@@ -217,8 +221,8 @@ public class NbQuery {
     }
 
     public <T> T getGeneratedKey(Class<T> type) {
-        if(generatedKey == null) return null;
-        return (T)context.getConverterManager().convertFromDb(generatedKey, type);
+        if (generatedKey == null) return null;
+        return (T) context.getConverterManager().convertFromDb(generatedKey, type);
     }
 
     public NbQuery addParamsBean(Object bean) {
