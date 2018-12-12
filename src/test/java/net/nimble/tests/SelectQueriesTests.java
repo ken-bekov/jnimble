@@ -263,13 +263,13 @@ public class SelectQueriesTests {
             int id = connection.query("select id from person where first_name=:firstName and birth_date=:birthDate")
                     .addParam("firstName", jaime.getFirstName())
                     .addParam("birthDate", jaime.getBirthDate())
-                    .fetchScalar(Integer.class);
+                    .fetchValue(Integer.class);
 
             DateTime date = connection.query("select birth_date from person " +
                     "where first_name=:firstName and birth_date=:birthDate")
                     .addParam("firstName", jaime.getFirstName())
                     .addParam("birthDate", jaime.getBirthDate())
-                    .fetchScalar(DateTime.class);
+                    .fetchValue(DateTime.class);
          
             Assert.assertEquals(jaime.getId(), id);
             Assert.assertEquals(jaime.getBirthDate(), date);
