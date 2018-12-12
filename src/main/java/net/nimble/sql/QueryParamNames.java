@@ -22,21 +22,20 @@
  * SOFTWARE.
  */
 
-package net.nimble;
+package net.nimble.sql;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 
-public class NbParams {
+public class QueryParamNames {
+    private final List<String> names = new ArrayList<>();
+    private final List<int []> indexes = new ArrayList<>();
 
-    private final Map<String, Object> paramMap = new HashMap<>();
-
-    public NbParams add(String name, Object value) {
-        paramMap.put(name, value);
-        return this;
+    public List<String> getNames() {
+        return names;
     }
 
-    public Map<String, Object> getParamMap() {
-        return paramMap;
+    public List<int[]> getIndexes() {
+        return indexes;
     }
 }

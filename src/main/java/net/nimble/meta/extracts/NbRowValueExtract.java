@@ -36,7 +36,7 @@ public class NbRowValueExtract implements ValueExtract {
         NbRow row = (NbRow) object;
         HashMap<String, Object> result = new HashMap<>(row.getColumnCount());
         for (int i = 0; i < row.getColumnCount(); i++) {
-            result.put(row.getColumnName(i), row.getValue(i));
+            result.put(row.getColumnName(i), row.getObject(i));
         }
         return result;
     }

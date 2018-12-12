@@ -27,6 +27,8 @@ package net.nimble.meta.mappers;
 import net.nimble.NbRow;
 import net.nimble.conversion.ConverterManagerImpl;
 
+import java.util.Map;
+
 public class ObjectMapperFactory {
 
     private final ConverterManagerImpl converterManager;
@@ -38,6 +40,8 @@ public class ObjectMapperFactory {
     public ObjectMapper getObjectCreator(Class type) {
         if (type == NbRow.class) {
             return new NbRowMapper(converterManager);
+        } else if (Map.class.isAssignableFrom(type)) {
+            return new MapMapper();
         }
         return new BeanMapper(type, converterManager);
     }

@@ -24,6 +24,8 @@
 
 package net.nimble.tests;
 
+import net.nimble.NbParams;
+import net.nimble.NbQuery;
 import net.nimble.Nimble;
 import net.nimble.NbConnection;
 import net.nimble.tests.config.TestConfig;
@@ -57,17 +59,15 @@ public class InsertQueriesTests {
         Person tyrion = PeopleFactory.createTyrion();
 
         try (NbConnection connection = nimble.getConnection()) {
-            connection.setAutoCommit(false);
-            connection.setSavepoint();
-            int affectedRows =
-                    connection.execute("insert into person " +
+            NbQuery query = connection.query("insert into person " +
                             "(first_name, last_name, birth_date, gender, weight, height, cash_amount) values " +
-                            "(:firstName, :lastName, :birthDate, :gender, :weight, :height, :cashAmount)", tyrion);
+                            "(:firstName, :lastName, :birthDate, :gender, :weight, :height, :cashAmount)")
+                    .addParamsBean(tyrion);
+            int affectedRows = query.execute();
+            tyrion.setId(query.getGeneratedKey(Integer.class));
 
             Assert.assertEquals(1, affectedRows);
             Assert.assertTrue(tyrion.getId() > 0);
-            int id = connection.getGeneratedKeyAs(int.class);
-            Assert.assertEquals(tyrion.getId(), id);
         }
 
         try (Connection connection = dataSource.getConnection()) {

@@ -47,7 +47,7 @@ public class BeanMapper implements ObjectMapper {
     private final ConverterManagerImpl converterManager;
     private final Class objectClass;
 
-    BeanMapper(Class objectClass, ConverterManagerImpl converterManager) {
+    public BeanMapper(Class objectClass, ConverterManagerImpl converterManager) {
         this.objectClass = objectClass;
         this.converterManager = converterManager;
     }

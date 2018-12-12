@@ -25,5 +25,5 @@
 package net.nimble.sql;
 
 public enum SqlDialect {
-    MYSQL, POSTGRES
+    MYSQL, POSTGRES, MARIADB
 }

@@ -67,8 +67,10 @@ public class UpdateQueriesTests {
         cercei.setCashAmount(cercei.getCashAmount() + 100.22);
         cercei.setWeight(cercei.getWeight() + 5.83);
         try (NbConnection connection = nimble.getConnection()) {
-            int result = connection.execute("update person set cash_amount=:cashAmount, " +
-                    "weight=:weight where id=:id", cercei);
+            int result = connection.query("update person set cash_amount=:cashAmount, " +
+                    "weight=:weight where id=:id")
+                    .addParamsBean(cercei)
+                    .execute();
             Assert.assertEquals(1, result);
         }
 
@@ -96,7 +98,9 @@ public class UpdateQueriesTests {
 
         Person[] personList;
         try (NbConnection connection = nimble.getConnection()) {
-            personList = connection.query("select * from person where id=:id", tyrion, Person.class);
+            personList = connection.query("select * from person where id=:id")
+                    .addParam("id", tyrion.getId())
+                    .fetchList(Person.class);
         }
         Assert.assertEquals(1, personList.length);
         Person person = personList[0];

@@ -25,6 +25,7 @@
 package net.nimble.tests.utils;
 
 import net.nimble.tests.config.TestConfig;
+import net.nimble.tests.utils.providers.MariaDbDataSourceProvider;
 import net.nimble.tests.utils.providers.MysqlDataSourceProvider;
 import net.nimble.tests.utils.providers.PostgresDataSourceProvider;
 
@@ -59,6 +60,9 @@ public class DbUtils {
                     dataSource = new PostgresDataSourceProvider().createDataSource(TestConfig.serverName,
                             TestConfig.user, TestConfig.password, TestConfig.database);
                     break;
+                case MARIADB:
+                    dataSource = new MariaDbDataSourceProvider().createDataSource(TestConfig.serverName,
+                            TestConfig.user, TestConfig.password, TestConfig.database);
                 default:
                     dataSource = new MysqlDataSourceProvider().createDataSource(TestConfig.serverName,
                             TestConfig.user, TestConfig.password, TestConfig.database);

@@ -26,6 +26,7 @@ package net.nimble;
 
 import net.nimble.conversion.ConverterManagerImpl;
 import net.nimble.exceptions.NimbleException;
+import org.joda.time.DateTime;
 
 public class NbRow {
     private final String[] columnNames;
@@ -56,14 +57,62 @@ public class NbRow {
         return columnNames[columnIndex];
     }
 
-    public Object getValue(int columnIndex) {
+    public Object getObject(int columnIndex) {
         checkColumnIndex(columnIndex);
         return data[columnIndex];
     }
 
-    public Object getValue(String columnName) {
+    public Object getObject(String columnName) {
         int columnIndex = getColumnIndex(columnName);
-        return getValue(columnIndex);
+        return getObject(columnIndex);
+    }
+
+    public String getString(int columnIndex) {
+        return getValue(columnIndex, String.class);
+    }
+
+    public String getString(String columnName) {
+        return getValue(columnName, String.class);
+    }
+
+    public Short getShort(int columnIndex) {
+        return getValue(columnIndex, Short.class);
+    }
+
+    public Short getShort(String columnName) {
+        return getValue(columnName, Short.class);
+    }
+
+    public Integer getInt(int columnIndex) {
+        return getValue(columnIndex, Integer.class);
+    }
+
+    public Integer getInt(String columnName) {
+        return getValue(columnName, Integer.class);
+    }
+
+    public Float getFloat(int columnIndex) {
+        return getValue(columnIndex, Float.class);
+    }
+
+    public Float getFloat(String columnName) {
+        return getValue(columnName, Float.class);
+    }
+
+    public Double getDouble(int columnIndex) {
+        return getValue(columnIndex, Double.class);
+    }
+
+    public Double getDouble(String columnName) {
+        return getValue(columnName, Double.class);
+    }
+
+    public DateTime getDateTime(String columnName) {
+        return getValue(columnName, DateTime.class);
+    }
+
+    public DateTime getDateTime(int columnIndex) {
+        return getValue(columnIndex, DateTime.class);
     }
 
     public <T> T getValue(int columnIndex, Class<T> type) {
@@ -76,17 +125,12 @@ public class NbRow {
         return (T) converterManager.convertFromDb(data[columnIndex], type);
     }
 
-    public void setValue(int columnIndex, Object value) {
+    private void setValue(int columnIndex, Object value) {
         checkColumnIndex(columnIndex);
         data[columnIndex] = value;
     }
 
-    public void setValue(String columnName, Object value) {
-        int columnIndex = getColumnIndex(columnName);
-        setValue(columnIndex, value);
-    }
-
-    public int getColumnIndex(String columnName) {
+    private int getColumnIndex(String columnName) {
         int columnIndex = -1;
         for (int i = 0; i < columnNames.length; i++) {
             if (columnNames[i].equals(columnName)) {

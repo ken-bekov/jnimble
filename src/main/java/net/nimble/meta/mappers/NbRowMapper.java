@@ -38,7 +38,7 @@ public class NbRowMapper implements ObjectMapper {
     private List<String> columnNames = null;
     private final ConverterManagerImpl converterManager;
 
-    NbRowMapper(ConverterManagerImpl converterManager) {
+    public NbRowMapper(ConverterManagerImpl converterManager) {
         this.converterManager = converterManager;
     }
 

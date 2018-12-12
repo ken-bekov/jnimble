@@ -33,6 +33,7 @@ import net.nimble.tests.entities.Gender;
 import net.nimble.tests.entities.Person;
 import net.nimble.tests.utils.DbUtils;
 import net.nimble.tests.utils.PeopleFactory;
+import org.joda.time.DateTime;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -79,8 +80,8 @@ public class SelectQueriesTests {
 
         Person[] personList;
         try (NbConnection connection = nimble.getConnection()) {
-            personList = connection.query("select * from person " +
-                    "where first_name in ('Tyrion', 'Jaime', 'Cercei')", Person.class);
+            personList = connection.query("select * from person p " +
+                    "where first_name in ('Tyrion', 'Jaime', 'Cercei')").fetchList(Person.class);
         }
 
         Assert.assertNotNull(personList);
@@ -97,7 +98,7 @@ public class SelectQueriesTests {
     }
 
     @Test
-    public void anonymousParamQuery() throws SQLException {
+    public void paramQuery() throws SQLException {
         final Person cercie = PeopleFactory.createCercei();
         final Person jaime = PeopleFactory.createJaime();
         try (NbConnection connection = nimble.getConnection()) {
@@ -107,13 +108,10 @@ public class SelectQueriesTests {
 
         Person[] personList;
         try (NbConnection connection = nimble.getConnection(false)) {
-            Object paramsObject = new Object() {
-                public int getId() {
-                    return cercie.getId();
-                }
-            };
-            personList = connection.query("select * from person where id = :id",
-                    paramsObject, Person.class);
+            personList = connection.query("select * from person where id = :id")
+                    .addParam("id", cercie.getId())
+                    .addParam("gender", cercie.getGender())
+                    .fetchList(Person.class);
         }
 
         Assert.assertNotNull(personList);
@@ -149,7 +147,7 @@ public class SelectQueriesTests {
         Person[] personList;
         try (NbConnection connection = nimble.getConnection()) {
             personList = connection.query("select * from person where first_name in (:firstName) and " +
-                    "gender=:gender", params, Person.class);
+                    "gender=:gender").addParamsMap(params).fetchList(Person.class);
         }
 
         Assert.assertNotNull(personList);
@@ -166,7 +164,7 @@ public class SelectQueriesTests {
     }
 
     @Test
-    public void nbParamsQuery() throws SQLException {
+    public void listParamQuery() throws SQLException {
         final Person cercie = PeopleFactory.createCercei();
         final Person jaime = PeopleFactory.createJaime();
         final Person tyrion = PeopleFactory.createTyrion();
@@ -179,13 +177,12 @@ public class SelectQueriesTests {
         Person[] personList;
         try (NbConnection connection = nimble.getConnection()) {
             personList = connection.query(
-                    "select * from person where gender in (:gender) and " +
-                            "(first_name=:name1 or first_name=:name2)",
-                    new NbParams()
-                            .add("gender", new Gender[]{Gender.MALE, Gender.FEMALE})
-                            .add("name1", "Jaime")
-                            .add("name2", "Cercei"),
-                    Person.class);
+                    "select * from person where id in (:id) and " +
+                            "(first_name=:name1 or first_name=:name2)")
+                    .addParam("id", new int[]{jaime.getId(), cercie.getId()})
+                    .addParam("name1", "Jaime")
+                    .addParam("name2", "Cercei")
+                    .fetchList(Person.class);
         }
 
         Assert.assertNotNull(personList);
@@ -214,26 +211,69 @@ public class SelectQueriesTests {
 
         NbRow[] rowList;
         try (NbConnection connection = nimble.getConnection()) {
-            rowList = connection.query("select * from person where first_name in (:nameList)",
-                    new Object() {
-                        public String[] getNameList() {
-                            return new String[]{"Jaime", "Tyrion", "Cercei"};
-                        }
-                    }, NbRow.class);
+            rowList = connection.query("select * from person where first_name in (:names)")
+                    .addParam("names", new String[]{"Jaime", "Tyrion", "Cercei"})
+                    .fetchRowList();
         }
         Assert.assertNotNull(rowList);
         Assert.assertEquals(3, rowList.length);
         for (NbRow row : rowList) {
-            if (row.getValue("first_name").equals("Jaime")) {
-                Assert.assertEquals(jaime.getWeight(), row.getValue("weight", Double.class), 0);
-                Assert.assertEquals(jaime.getGender(), row.getValue("gender", Gender.class));
-            } else if (row.getValue("first_name").equals("Tyrion")) {
-                Assert.assertEquals(tyrion.getWeight(), row.getValue("weight", Double.class), 0);
-                Assert.assertEquals(tyrion.getGender(), row.getValue("gender", Gender.class));
-            } else if (row.getValue("first_name").equals("Cercei")) {
-                Assert.assertEquals(cercie.getWeight(), row.getValue("weight", Double.class), 0);
-                Assert.assertEquals(cercie.getGender(), row.getValue("gender", Gender.class));
+            switch (row.getString("first_name")) {
+                case "Jaime":
+                    Assert.assertEquals(jaime.getWeight(), row.getDouble("weight"), 0);
+                    Assert.assertEquals(jaime.getGender(), row.getValue("gender", Gender.class));
+                    break;
+                case "Tyrion":
+                    Assert.assertEquals(tyrion.getWeight(), row.getDouble("weight"), 0);
+                    Assert.assertEquals(tyrion.getGender(), row.getValue("gender", Gender.class));
+                    break;
+                case "Cercei":
+                    Assert.assertEquals(cercie.getWeight(), row.getDouble("weight"), 0);
+                    Assert.assertEquals(cercie.getGender(), row.getValue("gender", Gender.class));
+                    break;
             }
+        }
+    }
+
+    @Test
+    public void mapAsResult() throws SQLException {
+        Person tyrion = PeopleFactory.createTyrion();
+        try (NbConnection connection = nimble.getConnection()) {
+            connection.insert(tyrion);
+        }
+
+        Map<String, Object>[] personList;
+        try (NbConnection connection = nimble.getConnection()) {
+            personList = connection.query("select * from person where birth_date=:birthDate")
+                    .addParam("birthDate", tyrion.getBirthDate())
+                    .fetchMapList();
+        }
+
+        Assert.assertEquals(1, personList.length);
+        Assert.assertEquals(tyrion.getWeight(), personList[0].get("weight"));
+    }
+
+    @Test
+    public void singularResult() throws SQLException {
+        Person jaime = PeopleFactory.createJaime();
+        try (NbConnection connection = nimble.getConnection()) {
+            connection.insert(jaime);
+        }
+
+        try (NbConnection connection = nimble.getConnection()) {
+            int id = connection.query("select id from person where first_name=:firstName and birth_date=:birthDate")
+                    .addParam("firstName", jaime.getFirstName())
+                    .addParam("birthDate", jaime.getBirthDate())
+                    .fetchSingular(Integer.class);
+
+            DateTime date = connection.query("select birth_date from person " +
+                    "where first_name=:firstName and birth_date=:birthDate")
+                    .addParam("firstName", jaime.getFirstName())
+                    .addParam("birthDate", jaime.getBirthDate())
+                    .fetchSingular(DateTime.class);
+         
+            Assert.assertEquals(jaime.getId(), id);
+            Assert.assertEquals(jaime.getBirthDate(), date);
         }
     }
 
@@ -243,6 +283,7 @@ public class SelectQueriesTests {
         try (NbConnection connection = nimble.getConnection()) {
             connection.insert(jaime);
         }
+
         Person person;
         try (NbConnection connection = nimble.getConnection()) {
             person = connection.load(jaime.getId(), Person.class);

@@ -34,8 +34,8 @@ public class QueryProcessor {
 
     private static Pattern pattern = Pattern.compile("(?::)([\\w_]+)");
 
-    public static QueryParsingResult extractParamNames(String query) {
-        QueryParsingResult result = new QueryParsingResult();
+    public static QueryParamNames extractParamNames(String query) {
+        QueryParamNames result = new QueryParamNames();
         Matcher matcher = pattern.matcher(query);
         while (matcher.find()) {
             result.getNames().add(matcher.group(1));
@@ -44,7 +44,7 @@ public class QueryProcessor {
         return result;
     }
 
-    public static String prepareForStatement(String query, QueryParsingResult parsingResult, Map<String, Object> valueMap) {
+    public static String replaceParamNames(String query, QueryParamNames parsingResult, Map<String, Object> valueMap) {
         StringBuilder builder = new StringBuilder(query.length());
         int lastPosition = 0;
         for (int paramIndex = 0; paramIndex < parsingResult.getNames().size(); paramIndex++) {

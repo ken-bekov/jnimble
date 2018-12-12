@@ -25,17 +25,13 @@
 package net.nimble;
 
 import net.nimble.exceptions.NimbleException;
-import net.nimble.exceptions.NimbleSQLException;
 import net.nimble.meta.MetaUtils;
 import net.nimble.meta.mappers.ObjectMapper;
-import net.nimble.meta.extracts.ValueExtract;
 import net.nimble.sql.ConnectionWrapper;
-import net.nimble.sql.QueryParsingResult;
-import net.nimble.sql.QueryProcessor;
-
-import java.lang.reflect.Array;
 import java.sql.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 /**
  * This class is wrapper for {@code java.sql.Connection} class. It implements additional methods for simplify
@@ -56,97 +52,8 @@ public class NbConnection extends ConnectionWrapper {
         this.context = context;
     }
 
-    /**
-     * Method executes SELECT query and returns result as a List of items of specified type
-     *
-     * @param query the text of SQL query that returns ResultSet.
-     * @param type  the type of items that must be returned as a result.
-     * @param <T>   the type of list that must be returned as a result. As far as {@code type} parameter exists, this
-     *              parameter doesn't need to be specified due to the Java type inference.
-     * @return List of items of the type specified in the {@code type} parameter
-     */
-    public <T> T[] query(String query, Class<T> type) {
-        return query(query, (Object) null, type);
-    }
-
-    public <T> T[] query(String query, Map<String, Object> params, Class<T> type) {
-        return query(query, (Object) params, type);
-    }
-
-    public <T> T[] query(String query, NbParams params, Class<T> type) {
-        return query(query, (Object) params, type);
-    }
-
-    public <T> T[] query(String query, Object params, Class<T> type) {
-
-        QueryParsingResult parsingResult = null;
-        Map<String, Object> valueMap = null;
-        if (params != null) {
-            parsingResult = QueryProcessor.extractParamNames(query);
-            ValueExtract valueExtract = context.getValueExtractFactory().getExtractor(params);
-            valueMap = valueExtract.getValueMap(parsingResult.getNames(), params);
-            query = QueryProcessor.prepareForStatement(query, parsingResult, valueMap);
-        }
-
-        try {
-            PreparedStatement statement = connection.prepareStatement(query);
-            if (parsingResult != null && valueMap != null) {
-                setParamsToStatement(statement, parsingResult.getNames(), valueMap);
-            }
-
-            try (ResultSet resultSet = statement.executeQuery()) {
-                List<T> resultList = new LinkedList<>();
-                ObjectMapper objectCreator = context.getObjectMapperFactory().getObjectCreator(type);
-                while (resultSet.next()) {
-                    Object object = objectCreator.create(resultSet);
-                    resultList.add((T) object);
-                }
-                T[] result = (T[])Array.newInstance(type, resultList.size());
-                return resultList.toArray(result);
-            }
-        } catch (SQLException e) {
-            throw new NimbleSQLException(e);
-        }
-    }
-
-    private Object generatedKey;
-
-    public <T>  T getGeneratedKeyAs(Class<T> type) {
-        return (T)context.getConverterManager().convertFromDb(generatedKey, type);
-    }
-
-    public int execute(String query, Object params) {
-        try {
-            generatedKey = null;
-
-            QueryParsingResult parsingResult = QueryProcessor.extractParamNames(query);
-            ValueExtract valueExtract = context.getValueExtractFactory().getExtractor(params);
-            Map<String, Object> valueMap = valueExtract.getValueMap(parsingResult.getNames(), params);
-            query = QueryProcessor.prepareForStatement(query, parsingResult, valueMap);
-
-            PreparedStatement statement = isBean(params) ?
-                    connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS) :
-                    connection.prepareStatement(query);
-            setParamsToStatement(statement, parsingResult.getNames(), valueMap);
-
-            int result = statement.executeUpdate();
-
-            ResultSet resultSet = statement.getGeneratedKeys();
-            if (resultSet.next()) {
-                generatedKey = resultSet.getObject(1);
-            }
-
-            if (isBean(params) && generatedKey != null) {
-                MetaUtils.applyId(generatedKey, params, context.getConverterManager());
-            }
-            return result;
-        } catch (SQLException e) {
-            throw new NimbleSQLException(e);
-        }
-    }
-
-    private boolean isBean(Object params) {
-        return !(params instanceof NbRow) && !(params instanceof Map);
+    public NbQuery query(String query) {
+        return new NbQuery(query, this, context);
     }
 
     public int insert(Object object) throws SQLException {
@@ -276,38 +183,6 @@ public class NbConnection extends ConnectionWrapper {
         return statement.executeUpdate();
     }
 
-    private void setParamsToStatement(PreparedStatement statement,
-                                      List<String> nameList, Map<String, Object> valueMap) throws SQLException {
-        int index = 1;
-        for (String name : nameList) {
-            Object value = valueMap.get(name);
-            if (value == null) {
-                statement.setObject(index, null);
-                index++;
-                continue;
-            }
-
-            Class valueType = value.getClass();
-            if (valueType.isArray()) {
-                for (int i = 0; i < Array.getLength(value); i++) {
-                    Object arrayItem = context.getConverterManager().convertToDb(Array.get(value, i));
-                    statement.setObject(index, arrayItem);
-                    index++;
-                }
-            } else if (Collection.class.isAssignableFrom(valueType)) {
-                for (Object item : ((Collection) value)) {
-                    Object collectionItem = context.getConverterManager().convertToDb(item);
-                    statement.setObject(index, collectionItem);
-                    index++;
-                }
-            } else {
-                value = context.getConverterManager().convertToDb(value);
-                statement.setObject(index, value);
-                index++;
-            }
-        }
-    }
-
     private void addWhereConditions(StringBuilder builder, Map<String, Object> valueMap,
                                     List<String> columnNameList) {
         for (String columnName : valueMap.keySet()) {
@@ -320,7 +195,6 @@ public class NbConnection extends ConnectionWrapper {
 
     @Override
     public void close() throws SQLException {
-        generatedKey = null;
         super.close();
     }
 }

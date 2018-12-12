@@ -22,20 +22,30 @@
  * SOFTWARE.
  */
 
-package net.nimble.sql;
+package net.nimble.meta.mappers;
 
-import java.util.ArrayList;
-import java.util.List;
+import net.nimble.exceptions.NimbleException;
+import net.nimble.exceptions.NimbleSQLException;
 
-public class QueryParsingResult {
-    private final List<String> names = new ArrayList<>();
-    private final List<int []> indexes = new ArrayList<>();
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.Map;
 
-    public List<String> getNames() {
-        return names;
-    }
-
-    public List<int[]> getIndexes() {
-        return indexes;
+public class MapMapper implements ObjectMapper {
+    @Override
+    public Object create(ResultSet resultSet) {
+        try {
+            int colCount = resultSet.getMetaData().getColumnCount();
+            Map<String, Object> map = new HashMap<>(colCount);
+            for (int i = 1; i <= colCount; i++) {
+                String colName = resultSet.getMetaData().getColumnName(i);
+                Object value = resultSet.getObject(i);
+                map.put(colName, value);
+            }
+            return map;
+        } catch (SQLException e) {
+            throw new NimbleException("Can't extract RowSet data", e);
+        }
     }
 }
